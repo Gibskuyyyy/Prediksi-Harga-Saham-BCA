@@ -29,13 +29,10 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, confu
 karena saya ingin memprediksi harga saham pada BBCA jadi saya perlu untuk mengimpor datasetnya terlebih dahulu. dataset yang saya gunakan ini berasal dari yahoo finance. saya lakukan head(), describe(), dan info() untuk mengetahui nilai dan informasi yang terdapat pada dataset tersebut. saya menampilkan heatmap untuk melihat kolerasi antar kolom yang terdapat pada dataset. saya menampilkan grafik agar terlihat pergerakan harga sahamnya
 """
 
-# Ambil data saham BBCA dari Yahoo Finance
 df = yf.download("BBCA.JK", start="2018-01-01", end="2025-5-29")
 
-# Lihat 5 baris pertama
 df.head()
 
-# Statistik deskriptif
 df.describe()
 
 df.info()
@@ -67,17 +64,14 @@ Pada tahap ini, saya akan melakukan Pembersihan Dataset untuk menjadikan dataset
 4. Melakukan feature scaling menggunakan MinMaxScaler() atau StandardScalar() untuk fitur numerik.
 """
 
-# pengecekan duplikat
 df_clear = df.duplicated().sum()
 print(df_clear)
 
-# Menghilangkan duplikat
 df.drop_duplicates(inplace=True)
 
 df_clear = df.duplicated().sum()
 print(df_clear)
 
-# pengecekan dataset menggunakan isnull().sum()
 df_clear = df.isnull().sum()
 print(df_clear)
 
@@ -91,8 +85,6 @@ plt.xlabel('Kolom')
 plt.ylabel('Nilai')
 plt.show()
 
-# pemilihan fitur
-# Tambahkan fitur teknikal
 df['MA7'] = df['Close'].rolling(window=7).mean()
 df['MA14'] = df['Close'].rolling(window=14).mean()
 df['Return'] = df['Close'].pct_change()
@@ -101,21 +93,15 @@ df['target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)
 features = df[['Open', 'High', 'Low', 'Close', 'Volume', 'MA7', 'MA14', 'Return']]
 target = df['target']
 
-# Drop rows with NaN values that were introduced by feature engineering
-# This ensures that the scaler and the models receive clean data.
 df.dropna(inplace=True)
 
-# Re-assign features and target from the DataFrame after dropping NaNs
 features = df[['Open', 'High', 'Low', 'Close', 'Volume', 'MA7', 'MA14', 'Return']]
 target = df['target']
 
-# Inisialisasi StandardScaler
 scaler = StandardScaler()
 
-# Melakukan scaling pada kolom numerik
 features = scaler.fit_transform(features)
 
-# Menampilkan DataFrame setelah scaling
 print(features)
 
 """# Membangun model
@@ -134,14 +120,11 @@ semua model pada akhirnya saya lihat akurasinya menggunakan klasifikasi report d
 X_train, X_valid, Y_train, Y_valid = train_test_split(features, target, test_size=0.2, random_state=42, shuffle=False)
 print(X_train.shape, X_valid.shape)
 
-# Model Random Forest
 model_rf = RandomForestClassifier(n_estimators=100, random_state=42)
 model_rf.fit(X_train, Y_train)
 
-# Prediksi dengan Random Forest
 predictions_rf = model_rf.predict(X_valid)
 
-# Evaluasi model Random Forest
 print("Random Forest Classification Report:")
 print(classification_report(Y_valid, predictions_rf))
 
@@ -155,14 +138,11 @@ print("Random Forest Accuracy:", accuracy_score(Y_valid, predictions_rf))
 print("Random Forest Precision:", precision_score(Y_valid, predictions_rf))
 print("Random Forest Recall:", recall_score(Y_valid, predictions_rf))
 
-# Model Logistic Regression
 model_lr = LogisticRegression(random_state=42)
 model_lr.fit(X_train, Y_train)
 
-# Prediksi dengan Logistic Regression
 predictions_lr = model_lr.predict(X_valid)
 
-# Evaluasi model Logistic Regression
 print("Logistic Regression Classification Report:")
 print(classification_report(Y_valid, predictions_lr))
 
@@ -176,14 +156,11 @@ print("Logistic Regression Accuracy:", accuracy_score(Y_valid, predictions_lr))
 print("Logistic Regression Precision:", precision_score(Y_valid, predictions_lr))
 print("Logistic Regression Recall:", recall_score(Y_valid, predictions_lr))
 
-# Model XGBoost
 model_xgb = xgb.XGBClassifier(objective='binary:logistic', use_label_encoder=False, eval_metric='logloss', random_state=42)
 model_xgb.fit(X_train, Y_train)
 
-# Prediksi dengan XGBoost
 predictions_xgb = model_xgb.predict(X_valid)
 
-# Evaluasi model XGBoost
 print("XGBoost Classification Report:")
 print(classification_report(Y_valid, predictions_xgb))
 
@@ -202,22 +179,15 @@ print("XGBoost Recall:", recall_score(Y_valid, predictions_xgb))
 untuk melihat lebih jelasnya hasil dari prediksi setiap model, saya buatkan grafik pembanding antara model dengan dataset aslinya untuk melihat seperti apa keseusaiannya dalam memprediksi harga sahamnya
 """
 
-# Combine original data with predictions for visualization
 df_valid = df.iloc[X_train.shape[0]:].copy() # Get the validation set from the original df
 df_valid['Actual'] = Y_valid
 
-# Make predictions using the trained model and assign them to the column
-# The original code assigned the model object itself, causing the error.
 df_valid['XGBoost_Predicted'] = model_xgb.predict(X_valid)
 
-# Plot actual closing prices vs XGBoost predicted movement
 plt.figure(figsize=(15, 7))
 
-# Plot the actual closing price
 plt.plot(df_valid.index, df_valid['Close'], label='Actual Close Price', color='blue')
 
-# Highlight points where XGBoost predicts the price will go up (1) or down (0)
-# We can color-code the actual close price points based on the prediction
 up_preds = df_valid[df_valid['XGBoost_Predicted'] == 1]
 down_preds = df_valid[df_valid['XGBoost_Predicted'] == 0]
 
@@ -231,7 +201,6 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# You can also plot the actual target vs predicted target directly on the validation set
 plt.figure(figsize=(15, 5))
 plt.plot(df_valid.index, df_valid['Actual'], label='Actual Target (1=Up, 0=Down)', color='blue', alpha=0.7)
 plt.plot(df_valid.index, df_valid['XGBoost_Predicted'], label='XGBoost Predicted Target', color='orange', linestyle='--', alpha=0.7)
@@ -242,20 +211,15 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# Combine original data with predictions for visualization
 df_valid = df.iloc[X_train.shape[0]:].copy() # Get the validation set from the original df
 df_valid['Actual'] = Y_valid
 
-# Make predictions using the trained model and assign them to the column
 df_valid['LogisticRegression_Predicted'] = model_lr.predict(X_valid)
 
-# Plot actual closing prices vs Logistic Regression predicted movement
 plt.figure(figsize=(15, 7))
 
-# Plot the actual closing price
 plt.plot(df_valid.index, df_valid['Close'], label='Actual Close Price', color='blue')
 
-# Highlight points where Logistic Regression predicts the price will go up (1) or down (0)
 up_preds_lr = df_valid[df_valid['LogisticRegression_Predicted'] == 1]
 down_preds_lr = df_valid[df_valid['LogisticRegression_Predicted'] == 0]
 
@@ -269,7 +233,6 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# You can also plot the actual target vs predicted target directly on the validation set
 plt.figure(figsize=(15, 5))
 plt.plot(df_valid.index, df_valid['Actual'], label='Actual Target (1=Up, 0=Down)', color='blue', alpha=0.7)
 plt.plot(df_valid.index, df_valid['LogisticRegression_Predicted'], label='Logistic Regression Predicted Target', color='orange', linestyle='--', alpha=0.7)
@@ -280,20 +243,16 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# Combine original data with predictions for visualization
-df_valid = df.iloc[X_train.shape[0]:].copy() # Get the validation set from the original df
+df_valid = df.iloc[X_train.shape[0]:].copy()
 df_valid['Actual'] = Y_valid
 
-# Make predictions using the trained model and assign them to the column
 df_valid['RandomForest_Predicted'] = model_rf.predict(X_valid)
 
-# Plot actual closing prices vs Random Forest predicted movement
 plt.figure(figsize=(15, 7))
 
 # Plot the actual closing price
 plt.plot(df_valid.index, df_valid['Close'], label='Actual Close Price', color='blue')
 
-# Highlight points where Random Forest predicts the price will go up (1) or down (0)
 up_preds_rf = df_valid[df_valid['RandomForest_Predicted'] == 1]
 down_preds_rf = df_valid[df_valid['RandomForest_Predicted'] == 0]
 
@@ -307,7 +266,6 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# You can also plot the actual target vs predicted target directly on the validation set
 plt.figure(figsize=(15, 5))
 plt.plot(df_valid.index, df_valid['Actual'], label='Actual Target (1=Up, 0=Down)', color='blue', alpha=0.7)
 plt.plot(df_valid.index, df_valid['RandomForest_Predicted'], label='Random Forest Predicted Target', color='orange', linestyle='--', alpha=0.7)

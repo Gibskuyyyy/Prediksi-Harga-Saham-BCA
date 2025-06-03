@@ -39,7 +39,7 @@ Prediksi arah harga saham penting untuk pengambilan keputusan investasi. Meskipu
 
 ## Data Understanding
 
-Data diambil dari [Yahoo Finance](https://finance.yahoo.com) menggunakan library `yfinance` dengan ticker `BBCA.JK`, mencakup periode dari 1 Januari 2018 hingga 29 Mei 2024.
+Data diambil dari [Yahoo Finance](https://finance.yahoo.com) menggunakan library `yfinance` dengan ticker `BBCA.JK`, mencakup periode dari 1 Januari 2018 hingga 29 Mei 2024. Dataset awal terdiri dari 1821 baris dan 5 kolom. 
 
 ### Fitur yang digunakan:
 
@@ -69,8 +69,9 @@ penjelasan dataset :
 * Menghapus nilai duplikat
 * Menambahkan kolom `target` untuk klasifikasi biner (naik/turun)
 * Melakukan *standard scaling* terhadap fitur numerik menggunakan `StandardScaler`
-* Membagi data menjadi *training* dan *validation* dengan rasio 80:20
 * Membuat kolom baru berisikan MA sebagai indikator tambahan untuk melihat histori rata-rata untuk pergerakan pada masa lalu. karena MA merupakan rata-rata dari masa lalu seperti contohnya MA(7) berarti pergerakan 7 hari, dan MA(14) berarti pergerakan 14 hari terdapat kolom yang tidak memiliki nilai karena data yang tidak ada seperti contohnya 14 baris awal pada data tidak ada nilai MA(14)nya maka dari itu saya hilangkan untuk yang tidak ada nilanya.
+* Serta membuat persentase perubahan harga penutupan (return)
+* Membagi data menjadi *training* dan *validation* dengan rasio 80:20
 
 ---
 
@@ -162,17 +163,29 @@ Data telah dibagi dan diskalakan secara tepat.
 
 1. **Random Forest**
 
-   * Akurasi: \~56%
+   * Accuracy: \~55%
+   * Precision: \~57%
+   * Recall: \~7,45%
+   * F1-score 0: \~70%
+   * F1-score 1: \~13%
    * Model tampak seperti hanya sedikit lebih baik dari random guessing
 
 2. **XGBoost**
 
-   * Akurasi: \~56%
+   * Accuracy: \~55%
+   * Precision: \~51%
+   * Recall: \~9,9%
+   * F1-score 0: \~69%
+   * F1-score 1: \~17%
    * Tidak memberikan peningkatan berarti dari Random Forest
 
 3. **Logistic Regression**
 
-   * Akurasi: \~56%
+   * Accuracy: \~56%
+   * Precision: \~53%
+   * Recall: \~21%
+   * F1-score 0: \~68%
+   * F1-score 1: \~30%
    * Mirip dengan dua model sebelumnya, performa masih lemah
 
 ### Analisis:
